@@ -212,6 +212,8 @@ LibTcgInstructionList libtcg_translate(LibTcgContext *context,
         context->cpu->cflags_next_tb = -1;
     }
     cflags |= CF_NO_GOTO_TB;
+    cflags &= ~CF_USE_ICOUNT;
+    cflags |= CF_NOIRQ;
 
     /* 
      * Initialize backend fields to avoid 
