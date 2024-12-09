@@ -13,4 +13,4 @@ libtcg_loader = shared_library('tcg-loader',
                                install: true)
 
 
-specific_ss.add_all(when: 'CONFIG_LIBTCG', if_true: libtcg_ss)
+specific_ss.add_all(libtcg_ss)

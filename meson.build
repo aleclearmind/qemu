@@ -65,6 +65,7 @@ have_linux_user = false
 have_bsd_user = false
 have_system = false
 have_libtcg = get_option('libtcg')
+config_host_data.set('CONFIG_LIBTCG', have_libtcg)
 have_llvm_helpers = get_option('llvm-helpers')
 foreach target : target_dirs
   have_linux_user = have_linux_user or target.endswith('linux-user')
@@ -3512,7 +3513,9 @@ subdir('fpu')
 subdir('accel')
 subdir('plugins')
 subdir('ebpf')
-subdir('libtcg')
+if have_libtcg
+  subdir('libtcg')
+endif
 
 common_user_inc = []
 
