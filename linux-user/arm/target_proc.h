@@ -6,6 +6,7 @@
 #ifndef ARM_TARGET_PROC_H
 #define ARM_TARGET_PROC_H
 
+#ifndef GEN_LLVM_HELPERS
 static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 {
     ARMCPU *cpu = env_archcpu(cpu_env);
@@ -96,6 +97,7 @@ static int open_cpuinfo(CPUArchState *cpu_env, int fd)
     }
     return 0;
 }
+#endif
 #define HAVE_ARCH_PROC_CPUINFO
 
 #endif /* ARM_TARGET_PROC_H */

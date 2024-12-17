@@ -44,7 +44,9 @@ void cpu_loop_exit(CPUState *cpu)
 void cpu_loop_exit_restore(CPUState *cpu, uintptr_t pc)
 {
     if (pc) {
+#ifndef GEN_LLVM_HELPERS
         cpu_restore_state(cpu, pc);
+#endif
     }
     cpu_loop_exit(cpu);
 }

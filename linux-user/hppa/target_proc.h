@@ -6,6 +6,7 @@
 #ifndef HPPA_TARGET_PROC_H
 #define HPPA_TARGET_PROC_H
 
+#ifndef GEN_LLVM_HELPERS
 static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 {
     int i, num_cpus;
@@ -21,6 +22,8 @@ static int open_cpuinfo(CPUArchState *cpu_env, int fd)
     }
     return 0;
 }
+#endif
+
 #define HAVE_ARCH_PROC_CPUINFO
 
 #endif /* HPPA_TARGET_PROC_H */

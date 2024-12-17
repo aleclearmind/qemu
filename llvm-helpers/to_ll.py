@@ -7,6 +7,25 @@ import shlex
 import sys
 import subprocess
 
+common_files = [
+    "accel/tcg/user-exec.c",
+    "linux-user/main.c",
+    "linux-user/syscall.c",
+    "linux-user/thunk.c",
+    "linux-user/mmap.c",
+    "linux-user/signal.c",
+    "linux-user/uaccess.c",
+    "linux-user/uname.c",
+    "linux-user/fd-trans.c",
+    "util/cutils.c",
+    "util/interval-tree.c",
+    "fpu/softfloat.c",
+    "trace/trace-linux_user.c",
+    #"trace/trace-qom.c",
+    "trace/control.c",
+    #"qom/object.c",
+]
+
 helpers = {
     "arm" : [
         "target/arm/helper.c",
@@ -36,14 +55,6 @@ helpers = {
         "linux-user/arm/nwfpe/extended_cpdo.c",
         "linux-user/arm/cpu_loop.c",
         "linux-user/arm/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
-        "qom/object.c",
     ],
     "aarch64" : [
         "target/arm/helper.c",
@@ -73,13 +84,6 @@ helpers = {
         "target/arm/vfp_helper.c",
         "linux-user/aarch64/cpu_loop.c",
         "linux-user/aarch64/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
-        "qom/object.c",
     ],
     "s390x" : [
         "target/s390x/tcg/cc_helper.c",
@@ -96,13 +100,6 @@ helpers = {
         "target/s390x/tcg/vec_string_helper.c",
         "linux-user/s390x/cpu_loop.c",
         "linux-user/s390x/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "i386" : [
         "target/i386/tcg/misc_helper.c",
@@ -115,15 +112,10 @@ helpers = {
         "target/i386/tcg/mem_helper.c",
         "target/i386/tcg/mpx_helper.c",
         "target/i386/tcg/seg_helper.c",
+        "target/i386/tcg/user/seg_helper.c",
+        "target/i386/helper.c",
         "linux-user/i386/cpu_loop.c",
         "linux-user/i386/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "x86_64" : [
         "target/i386/tcg/misc_helper.c",
@@ -136,15 +128,10 @@ helpers = {
         "target/i386/tcg/mem_helper.c",
         "target/i386/tcg/mpx_helper.c",
         "target/i386/tcg/seg_helper.c",
+        "target/i386/tcg/user/seg_helper.c",
+        "target/i386/helper.c",
         "linux-user/x86_64/cpu_loop.c",
         "linux-user/x86_64/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "mips" : [
         "target/mips/tcg/dsp_helper.c",
@@ -161,13 +148,6 @@ helpers = {
         "target/mips/tcg/mxu_translate.c",
         "linux-user/mips/cpu_loop.c",
         "linux-user/mips/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "mipsel" : [
         "target/mips/tcg/dsp_helper.c",
@@ -184,13 +164,6 @@ helpers = {
         "target/mips/tcg/mxu_translate.c",
         "linux-user/mips/cpu_loop.c",
         "linux-user/mips/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "hexagon" : [
         "target/hexagon/decode.c",
@@ -199,12 +172,6 @@ helpers = {
         "target/hexagon/translate.c",
         "linux-user/hexagon/cpu_loop.c",
         "linux-user/hexagon/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "loongarch64" : [
         "target/loongarch/fpu_helper.c",
@@ -213,13 +180,6 @@ helpers = {
         "target/loongarch/vec_helper.c",
         "linux-user/loongarch64/cpu_loop.c",
         "linux-user/loongarch64/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "aarch64_be" : [],
     "alpha" : [],
@@ -255,13 +215,6 @@ helpers = {
         "target/s390x/tcg/vec_string_helper.c",
         "linux-user/s390x/cpu_loop.c",
         "linux-user/s390x/signal.c",
-        "linux-user/main.c",
-        "linux-user/syscall.c",
-        "linux-user/thunk.c",
-        "linux-user/mmap.c",
-        "linux-user/signal.c",
-        "linux-user/uaccess.c",
-        "linux-user/uname.c",
     ],
     "sh4eb" : [],
     "sh4" : [],
@@ -280,23 +233,38 @@ def run_command(argv):
         print(f"out:\n{out}\n")
         print(f"err:\n{err}\n")
 
+def is_target_file(output):
+    for target in helpers:
+        if target in output:
+            return True
+    return False
+
+
 def find_compile_commands(target_name, clang_path, input_path):
     if os.path.exists("compile_commands.json"):
         with open("compile_commands.json", "r") as compile_commands_file:
             compile_commands = json.load(compile_commands_file)
             for compile_command in compile_commands:
                 path = compile_command["file"]
-                if os.path.abspath(path) != os.path.abspath(input_path):
-                    continue
-
-
-                os.chdir(compile_command["directory"])
+                #print(f"candidate: {path}");
+                #print(f"  abs: {os.path.abspath(path)}");
+                #print(f"  abs: {os.path.abspath(input_path)}");
+                # For files defined in frontends we check that the absolute path
+                # matches. Otherwise, checking for matching endings to also
+                # handle auto-generated files that end up in build/.
+                #
+                # NOTE: this does no handle target-specific auto-generated
+                # frontend files that have the same name.
                 command = compile_command["command"]
-                print(f"TARGET_NAME: {target_name}");
-                print(f"OUTPUT_NAME: {compile_command['output']}");
-                if not compile_command["output"].startswith(f"libqemu-{target_name}-") \
-                   and not compile_command["output"].startswith("libqom"):
+                command_output = compile_command["output"]
+                target_file = is_target_file(command_output)
+                if os.path.abspath(path) != os.path.abspath(input_path) and not (not target_file and input_path.endswith(path)):
                     continue
+                os.chdir(compile_command["directory"])
+                if target_file and not command_output.startswith(f"libqemu-{target_name}"):
+                    continue
+
+                print(f"{input_path} -> {compile_command['output']}")
 
                 argv = shlex.split(command)
                 argv[0] = clang_path
@@ -315,7 +283,7 @@ def generate_llvm_ir(target_name, clang_path, input_path, output_path):
         if arg in {'-MQ', '-o', '-MF'}:
             del argv[i:i+2]
 
-    argv += ["-Wno-unknown-warning-option",  "-emit-llvm", "-O0", "-Xclang", "-disable-O0-optnone", "-o", output_path]
+    argv += ["-DGEN_LLVM_HELPERS=1", "-Wno-unknown-warning-option",  "-emit-llvm", "-O0", "-Xclang", "-disable-O0-optnone", "-o", output_path]
 
     run_command(argv)
 
@@ -357,11 +325,9 @@ def main():
     # Generate LLVM IR
     ll_paths = []
     print(args.source_dir)
-    for file in helpers[args.target_name]:
+    for file in common_files + helpers[args.target_name]:
         input_path = os.path.join(args.source_dir, file)
         output_path = temp_file(output_folder, input_path)
-        print(f"  {input_path}")
-        print(f"  -> {output_path}")
         ll_paths.append(output_path)
         generate_llvm_ir(args.target_name, args.clang, input_path, output_path)
 

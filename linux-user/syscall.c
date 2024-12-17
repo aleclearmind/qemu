@@ -325,7 +325,9 @@ _syscall4(int, sys_rt_tgsigqueueinfo, pid_t, pid, pid_t, tid, int, sig,
           siginfo_t *, uinfo)
 _syscall3(int,sys_syslog,int,type,char*,bufp,int,len)
 #ifdef __NR_exit_group
+#ifndef GEN_LLVM_HELPERS
 _syscall1(int,exit_group,int,error_code)
+#endif
 #endif
 #if defined(__NR_close_range) && defined(TARGET_NR_close_range)
 #define __NR_sys_close_range __NR_close_range
@@ -335,8 +337,10 @@ _syscall3(int,sys_close_range,int,first,int,last,int,flags)
 #endif
 #endif
 #if defined(__NR_futex)
+#ifndef GEN_LLVM_HELPERS
 _syscall6(int,sys_futex,int *,uaddr,int,op,int,val,
           const struct timespec *,timeout,int *,uaddr2,int,val3)
+#endif
 #endif
 #if defined(__NR_futex_time64)
 _syscall6(int,sys_futex_time64,int *,uaddr,int,op,int,val,
@@ -4801,6 +4805,8 @@ static abi_long do_ioctl_ifconf(const IOCTLEntry *ie, uint8_t *buf_temp,
 #if HOST_LONG_BITS > 64
 #error USBDEVFS thunks do not support >64 bit hosts yet.
 #endif
+
+#ifndef GEN_LLVM_HELPERS
 struct live_urb {
     uint64_t target_urb_adr;
     uint64_t target_buf_adr;
@@ -4971,6 +4977,7 @@ do_ioctl_usbdevfs_submiturb(const IOCTLEntry *ie, uint8_t *buf_temp,
 
     return ret;
 }
+#endif
 #endif /* CONFIG_USBFS */
 
 static abi_long do_ioctl_dm(const IOCTLEntry *ie, uint8_t *buf_temp, int fd,
@@ -5822,12 +5829,21 @@ static void host_to_target_termios (void *dst, const void *src)
     target->c_cc[TARGET_VEOL2] = host->c_cc[VEOL2];
 }
 
+#ifndef GEN_LLVM_HELPERS
 static const StructEntry struct_termios_def = {
     .convert = { host_to_target_termios, target_to_host_termios },
     .size = { sizeof(struct target_termios), sizeof(struct host_termios) },
     .align = { __alignof__(struct target_termios), __alignof__(struct host_termios) },
     .print = print_termios,
 };
+#else
+static const StructEntry struct_termios_def = {
+    .convert = { host_to_target_termios, target_to_host_termios },
+    .size = { sizeof(struct target_termios), sizeof(struct host_termios) },
+    .align = { __alignof__(struct target_termios), __alignof__(struct host_termios) },
+    .print = NULL,
+};
+#endif
 
 /* If the host does not provide these bits, they may be safely discarded. */
 #ifndef MAP_SYNC
@@ -6484,7 +6500,9 @@ static abi_long do_prctl(CPUArchState *env, abi_long option, abi_long arg2,
 #define NEW_STACK_SIZE 0x40000
 
 
+#ifndef GEN_LLVM_HELPERS
 static pthread_mutex_t clone_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 typedef struct {
     CPUArchState *env;
     pthread_mutex_t mutex;
@@ -6496,6 +6514,7 @@ typedef struct {
     sigset_t sigmask;
 } new_thread_info;
 
+#ifndef GEN_LLVM_HELPERS
 static void *clone_func(void *arg)
 {
     new_thread_info *info = arg;
@@ -6529,6 +6548,7 @@ static void *clone_func(void *arg)
     /* never exits */
     return NULL;
 }
+#endif
 
 /* do_fork() Must return host values and target errnos (unlike most
    do_*() functions). */
@@ -6538,10 +6558,12 @@ static int do_fork(CPUArchState *env, unsigned int flags, abi_ulong newsp,
 {
     CPUState *cpu = env_cpu(env);
     int ret;
+#ifndef GEN_LLVM_HELPERS
     TaskState *ts;
     CPUState *new_cpu;
     CPUArchState *new_env;
     sigset_t sigmask;
+#endif
 
     flags &= ~CLONE_IGNORED_FLAGS;
 
@@ -6550,7 +6572,7 @@ static int do_fork(CPUArchState *env, unsigned int flags, abi_ulong newsp,
         flags &= ~(CLONE_VFORK | CLONE_VM);
 
     if (flags & CLONE_VM) {
-#ifdef CONFIG_LIBTCG
+#ifdef GEN_LLVM_HELPERS
         abort();
 #else
         TaskState *parent_ts = (TaskState *)cpu->opaque;
@@ -6679,10 +6701,12 @@ static int do_fork(CPUArchState *env, unsigned int flags, abi_ulong newsp,
                 put_user_u32(sys_gettid(), parent_tidptr);
             if (flags & CLONE_SETTLS)
                 cpu_set_tls (env, newtls);
-#ifndef CONFIG_LIBTCB
+#ifndef GEN_LLVM_HELPERS
             ts = (TaskState *)cpu->opaque;
             if (flags & CLONE_CHILD_CLEARTID)
                 ts->child_tidptr = child_tidptr;
+#else
+            assert(!(flags & CLONE_CHILD_CLEARTID));
 #endif
         } else {
             cpu_clone_regs_parent(env, flags);
@@ -7686,6 +7710,7 @@ static inline abi_long host_to_target_statx(struct target_statx *host_stx,
 }
 #endif
 
+#ifndef GEN_LLVM_HELPERS
 static int do_sys_futex(int *uaddr, int op, int val,
                          const struct timespec *timeout, int *uaddr2,
                          int val3)
@@ -7710,6 +7735,7 @@ static int do_sys_futex(int *uaddr, int op, int val,
 #endif /* HOST_LONG_BITS == 64 */
     g_assert_not_reached();
 }
+#endif
 
 static int do_safe_futex(int *uaddr, int op, int val,
                          const struct timespec *timeout, int *uaddr2,
@@ -7942,6 +7968,7 @@ int host_to_target_waitstatus(int status)
     return status;
 }
 
+#ifndef GEN_LLVM_HELPERS
 static int open_self_cmdline(CPUArchState *cpu_env, int fd)
 {
     CPUState *cpu = env_cpu(cpu_env);
@@ -7958,6 +7985,7 @@ static int open_self_cmdline(CPUArchState *cpu_env, int fd)
 
     return 0;
 }
+#endif
 
 struct open_self_maps_data {
     TaskState *ts;
@@ -7977,6 +8005,7 @@ struct open_self_maps_data {
 # define test_stack(S, E, L)  (S == L)
 #endif
 
+#ifndef GEN_LLVM_HELPERS
 static void open_self_maps_4(const struct open_self_maps_data *d,
                              const MapInfo *mi, abi_ptr start,
                              abi_ptr end, unsigned flags)
@@ -8196,6 +8225,7 @@ static int open_self_auxv(CPUArchState *cpu_env, int fd)
 
     return 0;
 }
+#endif
 
 static int is_proc_myself(const char *filename, const char *entry)
 {
@@ -8221,6 +8251,7 @@ static int is_proc_myself(const char *filename, const char *entry)
     return 0;
 }
 
+#ifndef GEN_LLVM_HELPERS
 static void excp_dump_file(FILE *logfile, CPUArchState *env,
                       const char *fmt, int code)
 {
@@ -8233,9 +8264,12 @@ static void excp_dump_file(FILE *logfile, CPUArchState *env,
         open_self_maps(env, fileno(logfile));
     }
 }
+#endif
 
 void target_exception_dump(CPUArchState *env, const char *fmt, int code)
 {
+/* target_exception_dump is called from cpu_loop(), keep around as stub */
+#ifndef GEN_LLVM_HELPERS
     /* dump to console */
     excp_dump_file(stderr, env, fmt, code);
 
@@ -8246,6 +8280,7 @@ void target_exception_dump(CPUArchState *env, const char *fmt, int code)
         excp_dump_file(logfile, env, fmt, code);
         qemu_log_unlock(logfile);
     }
+#endif
 }
 
 #include "target_proc.h"
@@ -8307,6 +8342,7 @@ static int open_net_route(CPUArchState *cpu_env, int fd)
 int do_guest_openat(CPUArchState *cpu_env, int dirfd, const char *fname,
                     int flags, mode_t mode, bool safe)
 {
+#ifndef GEN_LLVM_HELPERS
     g_autofree char *proc_name = NULL;
     const char *pathname;
     struct fake_open {
@@ -8393,6 +8429,13 @@ int do_guest_openat(CPUArchState *cpu_env, int dirfd, const char *fname,
     } else {
         return openat(dirfd, path(pathname), flags, mode);
     }
+#else
+    if (safe) {
+        return safe_openat(dirfd, path(fname), flags, mode);
+    } else {
+        return openat(dirfd, path(fname), flags, mode);
+    }
+#endif
 }
 
 ssize_t do_guest_readlink(const char *pathname, char *buf, size_t bufsiz)
@@ -8957,6 +9000,10 @@ _syscall5(int, sys_move_mount, int, __from_dfd, const char *, __from_pathname,
            int, __to_dfd, const char *, __to_pathname, unsigned int, flag)
 #endif
 
+#ifdef GEN_LLVM_HELPERS
+void on_exit_syscall(void);
+#endif
+
 /* This is an internal helper for do_syscall so that it is easier
  * to have a single return point, so that actions, such as logging
  * of syscall results, can be performed.
@@ -8983,6 +9030,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 
     switch(num) {
     case TARGET_NR_exit:
+#ifndef GEN_LLVM_HELPERS
         /* In old applications this may be used to implement _exit(2).
            However in threaded applications it is used for thread termination,
            and _exit_group is used for application termination.
@@ -9022,6 +9070,9 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         pthread_mutex_unlock(&clone_lock);
         preexit_cleanup(cpu_env, arg1);
         _exit(arg1);
+#else
+        on_exit_syscall();
+#endif
         return 0; /* avoid warning */
     case TARGET_NR_read:
         if (arg2 == 0 && arg3 == 0) {
@@ -10920,8 +10971,12 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 #ifdef __NR_exit_group
         /* new thread calls */
     case TARGET_NR_exit_group:
+#ifndef GEN_LLVM_HELPERS
         preexit_cleanup(cpu_env, arg1);
         return get_errno(exit_group(arg1));
+#else
+        on_exit_syscall();
+#endif
 #endif
     case TARGET_NR_setdomainname:
         if (!(p = lock_user_string(arg1)))

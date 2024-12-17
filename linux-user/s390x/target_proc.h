@@ -93,6 +93,7 @@ static void show_cpuinfo(CPUArchState *cpu_env, int fd, unsigned long n)
     show_cpu_ids(cpu_env, fd, n);
 }
 
+#ifndef GEN_LLVM_HELPERS
 static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 {
     int num_cpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -104,6 +105,7 @@ static int open_cpuinfo(CPUArchState *cpu_env, int fd)
     }
     return 0;
 }
+#endif
 #define HAVE_ARCH_PROC_CPUINFO
 
 #endif /* S390X_TARGET_PROC_H */

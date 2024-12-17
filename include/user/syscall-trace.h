@@ -26,14 +26,18 @@ static inline void record_syscall_start(void *cpu, int num,
                                         abi_long arg5, abi_long arg6,
                                         abi_long arg7, abi_long arg8)
 {
+#ifndef GEN_LLVM_HELPERS
     qemu_plugin_vcpu_syscall(cpu, num,
                              arg1, arg2, arg3, arg4,
                              arg5, arg6, arg7, arg8);
+#endif
 }
 
 static inline void record_syscall_return(void *cpu, int num, abi_long ret)
 {
+#ifndef GEN_LLVM_HELPERS
     qemu_plugin_vcpu_syscall_ret(cpu, num, ret);
+#endif
 }
 
 

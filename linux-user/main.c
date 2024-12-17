@@ -93,6 +93,80 @@ static bool enable_strace;
 static int last_log_mask;
 static const char *last_log_filename;
 
+#ifdef GEN_LLVM_HELPERS
+
+/* required by auto-generated trace code */
+int qemu_get_thread_id(void) {
+    return 0;
+}
+
+/* required by auto-generated trace code */
+bool message_with_timestamp;
+
+/* required by auto-generated trace code */
+void register_module_init(void (*fn)(void), module_init_type type)
+{
+    (void) fn;
+    (void) type;
+}
+
+FILE *qemu_log_trylock(void)
+{
+    return 0;
+}
+
+void qemu_log_unlock(FILE *ptr)
+{
+    (void) ptr;
+}
+
+struct QemuMutex;
+typedef struct QemuMutex QemuMutex;
+
+void qemu_mutex_lock_impl(QemuMutex *mutex, const char *file, const int line)
+{
+    (void) mutex;
+    (void) file;
+    (void) line;
+}
+
+void qemu_mutex_unlock_impl(QemuMutex *mutex, const char *file, const int line)
+{
+    (void) mutex;
+    (void) file;
+    (void) line;
+}
+
+typedef void (*QemuMutexLockFunc)(QemuMutex *m, const char *f, int l);
+QemuMutexLockFunc qemu_mutex_lock_func = qemu_mutex_lock_impl;
+
+void cpu_exec_start(CPUState *cpu)
+{
+    (void) cpu;
+}
+
+void cpu_exec_end(CPUState *cpu)
+{
+    (void) cpu;
+}
+
+void cpu_exec_step_atomic(CPUState *cpu)
+{
+    (void) cpu;
+}
+
+void error_report(const char *fmt, ...)
+{
+    (void) fmt;
+}
+
+/* called from cpu_loop() */
+void process_queued_cpu_work(CPUState *cpu)
+{
+    (void) cpu;
+}
+#endif
+
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible
  * guest address space into a contiguous chunk of virtual host memory.
@@ -140,14 +214,17 @@ unsigned long guest_stack_size = TARGET_DEFAULT_STACK_SIZE;
 /* Make sure everything is in a consistent state for calling fork().  */
 void fork_start(void)
 {
+#ifndef GEN_LLVM_HELPERS
     start_exclusive();
     mmap_fork_start();
     cpu_list_lock();
     qemu_plugin_user_prefork_lock();
+#endif
 }
 
 void fork_end(int child)
 {
+#ifndef GEN_LLVM_HELPERS
     qemu_plugin_user_postfork(child);
     mmap_fork_end(child);
     if (child) {
@@ -170,6 +247,7 @@ void fork_end(int child)
      * both child and parent.
      */
     end_exclusive();
+#endif
 }
 
 __thread CPUState *thread_cpu;
@@ -789,8 +867,11 @@ int main(int argc, char **argv, char **envp)
         AccelClass *ac = ACCEL_GET_CLASS(accel);
 
         accel_init_interfaces(ac);
+/* ifdef here to avoid having to pull in object.c */
+#ifndef GEN_LLVM_HELPERS
         object_property_set_bool(OBJECT(accel), "one-insn-per-tb",
                                  opt_one_insn_per_tb, &error_abort);
+#endif
         ac->init_machine(NULL);
     }
     cpu = cpu_create(cpu_type);

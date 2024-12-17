@@ -6,6 +6,7 @@
 #ifndef RISCV_TARGET_PROC_H
 #define RISCV_TARGET_PROC_H
 
+#ifndef GEN_LLVM_HELPERS
 static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 {
     int i;
@@ -32,6 +33,8 @@ static int open_cpuinfo(CPUArchState *cpu_env, int fd)
     g_free(isa_string);
     return 0;
 }
+#endif
+
 #define HAVE_ARCH_PROC_CPUINFO
 
 #endif /* RISCV_TARGET_PROC_H */

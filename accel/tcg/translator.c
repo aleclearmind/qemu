@@ -238,7 +238,7 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
     }
 }
 
-#ifndef CONFIG_LIBTSCG
+#if !defined(CONFIG_LIBTCG) && !defined(GEN_LLVM_HELPERS)
 static void *translator_access(CPUArchState *env, DisasContextBase *db,
                                vaddr pc, size_t len)
 {

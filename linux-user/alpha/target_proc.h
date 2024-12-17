@@ -6,6 +6,7 @@
 #ifndef ALPHA_TARGET_PROC_H
 #define ALPHA_TARGET_PROC_H
 
+#ifndef GEN_LLVM_HELPERS
 static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 {
     int max_cpus = sysconf(_SC_NPROCESSORS_CONF);
@@ -62,6 +63,7 @@ static int open_cpuinfo(CPUArchState *cpu_env, int fd)
 
     return 0;
 }
+#endif
 #define HAVE_ARCH_PROC_CPUINFO
 
 #endif /* ALPHA_TARGET_PROC_H */
