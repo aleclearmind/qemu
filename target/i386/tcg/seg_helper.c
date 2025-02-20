@@ -1297,7 +1297,7 @@ void helper_load_seg(CPUX86State *env, int seg_reg, int selector)
             && (!(env->hflags & HF_CS64_MASK) || cpl == 3)
 #endif
             ) {
-            raise_exception_err_ra(env, EXCP0D_GPF, 0, GETPC());
+            // raise_exception_err_ra(env, EXCP0D_GPF, 0, GETPC());
         }
         cpu_x86_load_seg_cache(env, seg_reg, selector, 0, 0, 0);
     } else {
@@ -1309,44 +1309,44 @@ void helper_load_seg(CPUX86State *env, int seg_reg, int selector)
         }
         index = selector & ~7;
         if ((index + 7) > dt->limit) {
-            raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+            // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
         }
         ptr = dt->base + index;
         e1 = cpu_ldl_kernel_ra(env, ptr, GETPC());
         e2 = cpu_ldl_kernel_ra(env, ptr + 4, GETPC());
 
         if (!(e2 & DESC_S_MASK)) {
-            raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+            // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
         }
         rpl = selector & 3;
         dpl = (e2 >> DESC_DPL_SHIFT) & 3;
         if (seg_reg == R_SS) {
             /* must be writable segment */
             if ((e2 & DESC_CS_MASK) || !(e2 & DESC_W_MASK)) {
-                raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+                // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
             }
             if (rpl != cpl || dpl != cpl) {
-                raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+                // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
             }
         } else {
             /* must be readable segment */
             if ((e2 & (DESC_CS_MASK | DESC_R_MASK)) == DESC_CS_MASK) {
-                raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+                // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
             }
 
             if (!(e2 & DESC_CS_MASK) || !(e2 & DESC_C_MASK)) {
                 /* if not conforming code, test rights */
                 if (dpl < cpl || dpl < rpl) {
-                    raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
+                    // raise_exception_err_ra(env, EXCP0D_GPF, selector & 0xfffc, GETPC());
                 }
             }
         }
 
         if (!(e2 & DESC_P_MASK)) {
             if (seg_reg == R_SS) {
-                raise_exception_err_ra(env, EXCP0C_STACK, selector & 0xfffc, GETPC());
+                // raise_exception_err_ra(env, EXCP0C_STACK, selector & 0xfffc, GETPC());
             } else {
-                raise_exception_err_ra(env, EXCP0B_NOSEG, selector & 0xfffc, GETPC());
+                // raise_exception_err_ra(env, EXCP0B_NOSEG, selector & 0xfffc, GETPC());
             }
         }
 

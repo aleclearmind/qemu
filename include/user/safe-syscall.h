@@ -133,8 +133,12 @@ long safe_syscall_set_errno_tail(int value);
 extern char safe_syscall_start[];
 extern char safe_syscall_end[];
 
+
 #define safe_syscall(...)                                                 \
     safe_syscall_base(&((TaskState *)thread_cpu->opaque)->signal_pending, \
                       __VA_ARGS__)
+
+#undef safe_syscall
+#define safe_syscall syscall
 
 #endif

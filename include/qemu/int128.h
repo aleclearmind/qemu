@@ -1,6 +1,8 @@
 #ifndef INT128_H
 #define INT128_H
 
+#define CONFIG_INT128
+
 #include "qemu/bswap.h"
 
 /*

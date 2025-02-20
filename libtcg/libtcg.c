@@ -320,8 +320,18 @@ LibTcgContext *libtcg_context_create(LibTcgDesc *desc)
     struct image_info info = {0};
     TaskState ts = {0};
     ts.info = &info;
+#if defined(TARGET_MIPS)
+    // TODO: we need to enable users to specify a floating point ABI
+    info.fp_abi = MIPS_ABI_FP_DOUBLE;
+#endif
     context->cpu->opaque = &ts;
     target_cpu_copy_regs(cpu_env(context->cpu), &regs);
+
+#if defined(TARGET_S390X)
+    cpu_env(context->cpu)->psw.mask = PSW_MASK_DAT | PSW_MASK_IO | PSW_MASK_EXT |       
+        PSW_MASK_MCHECK | PSW_MASK_PSTATE | PSW_MASK_64 |
+        PSW_MASK_32;
+#endif
 
     return context;
 }

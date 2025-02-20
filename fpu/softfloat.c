@@ -342,6 +342,11 @@ static inline bool f64_is_inf(union_float64 a)
 static inline float32
 float32_gen2(float32 xa, float32 xb, float_status *s,
              hard_f32_op2_fn hard, soft_f32_op2_fn soft,
+             f32_check_fn pre, f32_check_fn post) __attribute__((always_inline));
+
+static inline float32
+float32_gen2(float32 xa, float32 xb, float_status *s,
+             hard_f32_op2_fn hard, soft_f32_op2_fn soft,
              f32_check_fn pre, f32_check_fn post)
 {
     union_float32 ua, ub, ur;
@@ -369,6 +374,11 @@ float32_gen2(float32 xa, float32 xb, float_status *s,
  soft:
     return soft(ua.s, ub.s, s);
 }
+
+static inline float64
+float64_gen2(float64 xa, float64 xb, float_status *s,
+             hard_f64_op2_fn hard, soft_f64_op2_fn soft,
+             f64_check_fn pre, f64_check_fn post) __attribute__((always_inline));
 
 static inline float64
 float64_gen2(float64 xa, float64 xb, float_status *s,

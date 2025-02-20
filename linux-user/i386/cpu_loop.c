@@ -207,11 +207,68 @@ void cpu_loop(CPUX86State *env)
 {
     CPUState *cs = env_cpu(env);
     int trapnr;
-    abi_ulong ret;
 
     for(;;) {
         cpu_exec_start(cs);
         trapnr = cpu_exec(cs);
+        handle_exception(env, trapnr);
+    }
+}
+
+void initialize_env(CPUX86State *env);
+void initialize_env(CPUX86State *env) {
+    CC_SRC = env->eflags & (CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C);
+    env->df = 1 - (2 * ((env->eflags >> 10) & 1));
+    CC_OP = CC_OP_EFLAGS;
+    env->eflags &= ~(DF_MASK | CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C);
+
+    // WIP: from target_cpu_copy_regs
+    /* linux segment setup */
+    {
+        uint64_t *gdt_table;
+        env->gdt.base = target_mmap(0, sizeof(uint64_t) * TARGET_GDT_ENTRIES,
+                                    PROT_READ|PROT_WRITE,
+                                    MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+        env->gdt.limit = sizeof(uint64_t) * TARGET_GDT_ENTRIES - 1;
+        gdt_table = g2h_untagged(env->gdt.base);
+#ifdef TARGET_ABI32
+        write_dt(&gdt_table[__USER_CS >> 3], 0, 0xfffff,
+                 DESC_G_MASK | DESC_B_MASK | DESC_P_MASK | DESC_S_MASK |
+                 (3 << DESC_DPL_SHIFT) | (0xa << DESC_TYPE_SHIFT));
+#else
+        /* 64 bit code segment */
+        write_dt(&gdt_table[__USER_CS >> 3], 0, 0xfffff,
+                 DESC_G_MASK | DESC_B_MASK | DESC_P_MASK | DESC_S_MASK |
+                 DESC_L_MASK |
+                 (3 << DESC_DPL_SHIFT) | (0xa << DESC_TYPE_SHIFT));
+#endif
+        write_dt(&gdt_table[__USER_DS >> 3], 0, 0xfffff,
+                 DESC_G_MASK | DESC_B_MASK | DESC_P_MASK | DESC_S_MASK |
+                 (3 << DESC_DPL_SHIFT) | (0x2 << DESC_TYPE_SHIFT));
+    }
+    cpu_x86_load_seg(env, R_CS, __USER_CS);
+    cpu_x86_load_seg(env, R_SS, __USER_DS);
+#ifdef TARGET_ABI32
+    cpu_x86_load_seg(env, R_DS, __USER_DS);
+    cpu_x86_load_seg(env, R_ES, __USER_DS);
+    cpu_x86_load_seg(env, R_FS, __USER_DS);
+    cpu_x86_load_seg(env, R_GS, __USER_DS);
+    /* This hack makes Wine work... */
+    env->segs[R_FS].selector = 0;
+#else
+    cpu_x86_load_seg(env, R_DS, 0);
+    cpu_x86_load_seg(env, R_ES, 0);
+    cpu_x86_load_seg(env, R_FS, 0);
+    cpu_x86_load_seg(env, R_GS, 0);
+#endif
+
+}
+// WIP: we should call initialize_env in handle_exception as well
+
+void handle_exception(CPUX86State *env, int trapnr) {
+    CPUState *cs = env_cpu(env);
+    abi_ulong ret;
+    if (true) {
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
@@ -230,6 +287,7 @@ void cpu_loop(CPUX86State *env)
                              env->regs[R_EDI],
                              env->regs[R_EBP],
                              0, 0);
+            env->eip = env->exception_next_eip;
             if (ret == -QEMU_ERESTARTSYS) {
                 env->eip -= 2;
             } else if (ret != -QEMU_ESIGRETURN) {
@@ -248,6 +306,7 @@ void cpu_loop(CPUX86State *env)
                              env->regs[8],
                              env->regs[9],
                              0, 0);
+            env->eip = env->exception_next_eip;
             if (ret == -QEMU_ERESTARTSYS) {
                 env->eip -= 2;
             } else if (ret != -QEMU_ESIGRETURN) {
@@ -258,6 +317,7 @@ void cpu_loop(CPUX86State *env)
             emulate_vsyscall(env);
             break;
 #endif
+#if 0
         case EXCP0B_NOSEG:
         case EXCP0C_STACK:
             force_sig(TARGET_SIGBUS);
@@ -312,6 +372,7 @@ void cpu_loop(CPUX86State *env)
         case EXCP_ATOMIC:
             cpu_exec_step_atomic(cs);
             break;
+#endif
         default:
             EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n",
                       trapnr);

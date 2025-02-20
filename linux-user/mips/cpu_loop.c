@@ -63,16 +63,25 @@ static void do_tr_or_bp(CPUMIPSState *env, unsigned int code, bool trap)
 void cpu_loop(CPUMIPSState *env)
 {
     CPUState *cs = env_cpu(env);
-    int trapnr, si_code;
+    int trapnr;
+
+    for(;;) {
+        cpu_exec_start(cs);
+        trapnr = cpu_exec(cs);
+        handle_exception(env, trapnr);
+    }
+}
+
+void handle_exception(CPUMIPSState *env, int trapnr) {
+    CPUState *cs = env_cpu(env);
+    int si_code;
     unsigned int code;
     abi_long ret;
 # ifdef TARGET_ABI_MIPSO32
     unsigned int syscall_num;
 # endif
 
-    for(;;) {
-        cpu_exec_start(cs);
-        trapnr = cpu_exec(cs);
+    if (true) {
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
@@ -271,14 +280,24 @@ void target_cpu_copy_regs(CPUArchState *env, struct target_pt_regs *regs)
     interp_req = (info->interp_fp_abi == MIPS_ABI_FP_UNKNOWN) ? none_req
                                             : fpu_reqs[info->interp_fp_abi];
 
-    prog_req.single &= interp_req.single;
-    prog_req.soft &= interp_req.soft;
-    prog_req.fr1 &= interp_req.fr1;
-    prog_req.frdefault &= interp_req.frdefault;
-    prog_req.fre &= interp_req.fre;
+/* #define DUMP(x) printf( #x ": %d\n", x) */
+/*     DUMP(info->fp_abi); */
+
+/*     prog_req.single &= interp_req.single; */
+/*     prog_req.soft &= interp_req.soft; */
+/*     prog_req.fr1 &= interp_req.fr1; */
+/*     prog_req.frdefault &= interp_req.frdefault; */
+/*     prog_req.fre &= interp_req.fre; */
 
     bool cpu_has_mips_r2_r6 = env->insn_flags & ISA_MIPS_R2 ||
                               env->insn_flags & ISA_MIPS_R6;
+
+/*     DUMP(cpu_has_mips_r2_r6); */
+/*     DUMP(prog_req.fr1); */
+/*     DUMP(prog_req.frdefault); */
+/*     DUMP(prog_req.single); */
+/*     DUMP(env->active_fpu.fcr0 & (1 << FCR0_F64)); */
+/* #undef DUMP */
 
     if (prog_req.fre && !prog_req.frdefault && !prog_req.fr1) {
         env->CP0_Config5 |= (1 << CP0C5_FRE);

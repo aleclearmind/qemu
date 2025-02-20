@@ -9072,6 +9072,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
         _exit(arg1);
 #else
         on_exit_syscall();
+        _exit(arg1);
 #endif
         return 0; /* avoid warning */
     case TARGET_NR_read:
@@ -12714,10 +12715,14 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
 #if defined(TARGET_NR_set_tid_address)
     case TARGET_NR_set_tid_address:
     {
+#if 1
+        return get_errno(syscall(__NR_set_tid_address, (int *)g2h_untagged(arg1)));
+#else
         TaskState *ts = cpu->opaque;
         ts->child_tidptr = arg1;
         /* do not call host set_tid_address() syscall, instead return tid() */
         return get_errno(sys_gettid());
+#endif
     }
 #endif
 

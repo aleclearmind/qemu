@@ -2819,10 +2819,12 @@ static void do_xrstor_pkru(CPUX86State *env, target_ulong ptr, uintptr_t ra)
 
 static void do_fxrstor(CPUX86State *env, target_ulong ptr, uintptr_t ra)
 {
+#if 0
     /* The operand must be 16 byte aligned */
     if (ptr & 0xf) {
         raise_exception_ra(env, EXCP0D_GPF, ra);
     }
+#endif
 
     do_xrstor_fpu(env, ptr, ra);
 
@@ -2848,6 +2850,7 @@ static void do_xrstor(CPUX86State *env, target_ulong ptr, uint64_t rfbm, uintptr
 
     rfbm &= env->xcr0;
 
+#if 0
     /* The OS must have enabled XSAVE.  */
     if (!(env->cr[4] & CR4_OSXSAVE_MASK)) {
         raise_exception_ra(env, EXCP06_ILLOP, ra);
@@ -2857,9 +2860,11 @@ static void do_xrstor(CPUX86State *env, target_ulong ptr, uint64_t rfbm, uintptr
     if (ptr & 63) {
         raise_exception_ra(env, EXCP0D_GPF, ra);
     }
+#endif
 
     xstate_bv = cpu_ldq_data_ra(env, ptr + XO(header.xstate_bv), ra);
 
+#if 0
     if ((int64_t)xstate_bv < 0) {
         /* FIXME: Compact form.  */
         raise_exception_ra(env, EXCP0D_GPF, ra);
@@ -2871,6 +2876,7 @@ static void do_xrstor(CPUX86State *env, target_ulong ptr, uint64_t rfbm, uintptr
     if (xstate_bv & ~env->xcr0) {
         raise_exception_ra(env, EXCP0D_GPF, ra);
     }
+#endif
 
     /* The XCOMP_BV field must be zero.  Note that, as of the April 2016
        revision, the description of the XSAVE Header (Vol 1, Sec 13.4.2)
@@ -2879,9 +2885,11 @@ static void do_xrstor(CPUX86State *env, target_ulong ptr, uint64_t rfbm, uintptr
        includes the next 64-bit field.  */
     xcomp_bv = cpu_ldq_data_ra(env, ptr + XO(header.xcomp_bv), ra);
     reserve0 = cpu_ldq_data_ra(env, ptr + XO(header.reserve0), ra);
+#if 0
     if (xcomp_bv || reserve0) {
         raise_exception_ra(env, EXCP0D_GPF, ra);
     }
+#endif
 
     if (rfbm & XSTATE_FP_MASK) {
         if (xstate_bv & XSTATE_FP_MASK) {

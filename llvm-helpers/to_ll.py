@@ -8,6 +8,8 @@ import sys
 import subprocess
 
 common_files = [
+    "accel/tcg/tcg-runtime.c",
+    "accel/tcg/tcg-runtime-gvec.c",
     "accel/tcg/user-exec.c",
     "linux-user/main.c",
     "linux-user/syscall.c",
@@ -94,6 +96,8 @@ helpers = {
         "target/s390x/tcg/mem_helper.c",
         "target/s390x/tcg/misc_helper.c",
         "target/s390x/tcg/translate.c",
+        "target/s390x/cpu-dump.c",
+        "target/s390x/interrupt.c",
         "target/s390x/tcg/vec_fpu_helper.c",
         "target/s390x/tcg/vec_helper.c",
         "target/s390x/tcg/vec_int_helper.c",
@@ -116,6 +120,7 @@ helpers = {
         "target/i386/helper.c",
         "linux-user/i386/cpu_loop.c",
         "linux-user/i386/signal.c",
+        "linux-user/vm86.c",
     ],
     "x86_64" : [
         "target/i386/tcg/misc_helper.c",
@@ -134,6 +139,7 @@ helpers = {
         "linux-user/x86_64/signal.c",
     ],
     "mips" : [
+        "target/mips/fpu.c",
         "target/mips/tcg/dsp_helper.c",
         "target/mips/tcg/exception.c",
         "target/mips/tcg/fpu_helper.c",
@@ -150,6 +156,7 @@ helpers = {
         "linux-user/mips/signal.c",
     ],
     "mipsel" : [
+        "target/mips/fpu.c",
         "target/mips/tcg/dsp_helper.c",
         "target/mips/tcg/exception.c",
         "target/mips/tcg/fpu_helper.c",
@@ -200,22 +207,6 @@ helpers = {
     "ppc" : [],
     "riscv32" : [],
     "riscv64" : [],
-    "s390x" : [
-        "target/s390x/tcg/cc_helper.c",
-        "target/s390x/tcg/crypto_helper.c",
-        "target/s390x/tcg/excp_helper.c",
-        "target/s390x/tcg/fpu_helper.c",
-        "target/s390x/tcg/int_helper.c",
-        "target/s390x/tcg/mem_helper.c",
-        "target/s390x/tcg/misc_helper.c",
-        "target/s390x/tcg/translate.c",
-        "target/s390x/tcg/vec_fpu_helper.c",
-        "target/s390x/tcg/vec_helper.c",
-        "target/s390x/tcg/vec_int_helper.c",
-        "target/s390x/tcg/vec_string_helper.c",
-        "linux-user/s390x/cpu_loop.c",
-        "linux-user/s390x/signal.c",
-    ],
     "sh4eb" : [],
     "sh4" : [],
     "sparc32plus" : [],
@@ -226,12 +217,11 @@ helpers = {
 }
 
 def run_command(argv):
-    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out,err = proc.communicate()
+    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _ = proc.communicate()
     if proc.wait() != 0:
         print("Command exited with %d:\n%s\n" % (proc.returncode," ".join(argv)))
-        print(f"out:\n{out}\n")
-        print(f"err:\n{err}\n")
+        print(out.decode("utf8"))
 
 def is_target_file(output):
     for target in helpers:

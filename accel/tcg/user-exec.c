@@ -976,7 +976,7 @@ static void *cpu_mmu_lookup(CPUState *cpu, vaddr addr,
 
     /* Enforce guest required alignment.  */
     if (unlikely(addr & ((1 << a_bits) - 1))) {
-        cpu_loop_exit_sigbus(cpu, addr, type, ra);
+        // cpu_loop_exit_sigbus(cpu, addr, type, ra);
     }
 
     ret = g2h(cpu, addr);
@@ -1260,7 +1260,7 @@ static void *atomic_mmu_lookup(CPUState *cpu, vaddr addr, MemOpIdx oi,
 
     /* Enforce guest required alignment.  */
     if (unlikely(addr & ((1 << a_bits) - 1))) {
-        cpu_loop_exit_sigbus(cpu, addr, MMU_DATA_STORE, retaddr);
+        // cpu_loop_exit_sigbus(cpu, addr, MMU_DATA_STORE, retaddr);
     }
 
     /* Enforce qemu required alignment.  */
